@@ -1,0 +1,46 @@
+// BalanceMyPool schema. Two pools, no auth. Postgres on Railway.
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Pool {
+  id            String    @id @default(cuid())
+  name          String
+  volumeGallons Int
+  surface       String    @default("plaster") // plaster | vinyl | fiberglass
+  sanitizer     String    @default("chlorine")
+  stripId       String    @default("easytest-7in1")
+  chemicals     Json // editable ChemicalSet
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  readings      Reading[]
+}
+
+model Reading {
+  id     String @id @default(cuid())
+  poolId String
+  pool   Pool   @relation(fields: [poolId], references: [id], onDelete: Cascade)
+
+  // Measured values (null = pad unreadable / not entered).
+  freeChlorine    Float?
+  totalChlorine   Float?
+  bromine         Float?
+  ph              Float?
+  totalAlkalinity Float?
+  cya             Float?
+  totalHardness   Float?
+
+  source         String  @default("strip-photo") // strip-photo | manual
+  note           String?
+  recommendation Json // snapshot of the engine's Analysis at save time
+
+  createdAt DateTime @default(now())
+
+  @@index([poolId, createdAt])
+}
