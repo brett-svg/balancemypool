@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -67,13 +69,27 @@ export default function Chat({ poolId, poolName }: { poolId: string; poolName: s
             </div>
           </div>
         )}
-        {messages.map((m, i) => (
-          <div key={i} className={m.role === "user" ? "text-right" : "text-left"}>
-            <div className={`inline-block max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm ${m.role === "user" ? "bg-cyan-600 text-white" : "bg-zinc-100 dark:bg-zinc-800"}`}>
-              {m.content || (busy ? "…" : "")}
+        {messages.map((m, i) =>
+          m.role === "user" ? (
+            <div key={i} className="text-right">
+              <div className="inline-block max-w-[85%] whitespace-pre-wrap rounded-2xl bg-cyan-600 px-3 py-2 text-sm text-white">
+                {m.content}
+              </div>
             </div>
-          </div>
-        ))}
+          ) : (
+            <div key={i} className="text-left">
+              <div className="inline-block max-w-[85%] rounded-2xl bg-zinc-100 px-3 py-2 text-sm dark:bg-zinc-800">
+                {m.content ? (
+                  <div className="prose prose-sm max-w-none dark:prose-invert prose-p:my-1.5 prose-headings:my-2 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5 prose-pre:my-1.5">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <span>{busy ? "…" : ""}</span>
+                )}
+              </div>
+            </div>
+          ),
+        )}
       </div>
 
       <form
